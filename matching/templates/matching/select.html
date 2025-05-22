@@ -1,0 +1,96 @@
+<!-- matching/templates/matching/select.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>…</head>
+<body>
+  <h1>팀 매칭 요청</h1>
+
+  <form id="matchingForm">
+    <!-- 세부 공모전 선택 -->
+    <h3>세부 공모전 선택</h3>
+    <div id="subcategories">
+      {% for sub in subcategories %}
+        <label>
+          <input type="radio" name="subcategory" value="{{ sub }}" required> {{ sub }}
+        </label><br>
+      {% endfor %}
+    </div>
+
+    <!-- 역할 선택 -->
+    <p>
+      <label>
+        역할 선택:
+        <select id="roleSelect" name="role" required>
+          <option value="">-- 먼저 세부항목 선택 --</option>
+        </select>
+      </label>
+    </p>
+
+    <button type="submit">매칭 요청 보내기</button>
+  </form>
+
+  <script>
+    const form       = document.getElementById('matchingForm');
+    const subWrap    = document.getElementById('subcategories');
+    const roleSelect = document.getElementById('roleSelect');
+    // 초기 서브카테고리 마크업을 저장
+    const initialSubHTML = subWrap.innerHTML;
+
+    // 1) subcategory 선택 시 역할 로드
+    subWrap.addEventListener('change', () => {
+      const chosen = document.querySelector('input[name="subcategory"]:checked');
+      if (!chosen) return;
+      fetch(`/api/matching/roles/?subcategory=${encodeURIComponent(chosen.value)}`)
+        .then(r => r.json())
+        .then(json => {
+          roleSelect.innerHTML = '<option value="">-- 선택하세요 --</option>';
+          if (json.roles) {
+            json.roles.forEach(r => {
+              const opt = document.createElement('option');
+              opt.value = r;
+              opt.textContent = r;
+              roleSelect.appendChild(opt);
+            });
+          } else {
+            alert(json.error);
+          }
+        })
+        .catch(() => alert('역할을 불러오는 중 오류가 발생했습니다.'));
+    });
+
+    // 2) 폼 제출 → API 호출, 그리고 서브카테고리 복원
+    form.addEventListener('submit', e => {
+      e.preventDefault();  // 페이지 리로드 방지
+      const data = {
+        desired_partner:   form.desired_partner.value,
+        subcategory:       document.querySelector('input[name="subcategory"]:checked').value,
+        role:              form.role.value,
+        // 필요하다면 추가 필드…
+      };
+
+      fetch('/api/matching/request/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken':  '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => {
+        if (!res.ok) return Promise.reject(res);
+        return res.json();
+      })
+      .then(() => {
+        alert('매칭 요청이 등록되었습니다!');
+        // 요청 후에도 서브카테고리를 원래대로 복원
+        subWrap.innerHTML    = initialSubHTML;
+        roleSelect.innerHTML = '<option value="">-- 먼저 세부항목 선택 --</option>';
+      })
+      .catch(async err => {
+        const text = await err.text();
+        alert('오류: ' + text);
+      });
+    });
+  </script>
+</body>
+</html>
