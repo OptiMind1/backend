@@ -18,13 +18,6 @@ class MatchingRequestSerializer(serializers.ModelSerializer):
             'role'
         ]
 
-    # def create(self, validated_data):
-    #     # user는 request.user 로 설정
-    #     return MatchingRequest.objects.create(
-    #         user=self.context['request'].user,
-    #         **validated_data
-    #     )
-
     def create(self, validated_data):
         user = validated_data.pop('user')
         nationality = self.context.get('nationality')
