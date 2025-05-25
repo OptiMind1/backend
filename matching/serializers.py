@@ -2,6 +2,10 @@ from rest_framework import serializers
 from .models import MatchingRequest
 
 class MatchingRequestSerializer(serializers.ModelSerializer):
+    
+    nationality = serializers.CharField(read_only=True)
+    languages = serializers.JSONField(read_only=True)
+
     class Meta:
         model = MatchingRequest
         fields = [
@@ -15,8 +19,13 @@ class MatchingRequestSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # request.user 로 ForeignKey 채워주기
+        user = validated_data.pop('user')
+        nationality = self.context.get('nationality')
+        languages = self.context.get('languages')
+
         return MatchingRequest.objects.create(
-            user=self.context['request'].user,
+            user=user,
+            nationality=nationality,
+            languages=languages,
             **validated_data
         )

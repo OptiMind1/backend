@@ -50,3 +50,12 @@ class MatchingRequestCreateAPIView(generics.CreateAPIView):
     queryset = MatchingRequest.objects.all()
     serializer_class = MatchingRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        profile = self.request.user.profile
+        nationality = self.request.user.nationality
+        serializer.context['nationality'] = nationality
+        serializer.context['languages'] = profile.languages
+
+        # ✅ 다시 이걸 써야 함
+        serializer.save(user=self.request.user)
