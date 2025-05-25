@@ -56,6 +56,10 @@ class MatchingRequestCreateAPIView(generics.CreateAPIView):
         nationality = self.request.user.nationality
         serializer.context['nationality'] = nationality
         serializer.context['languages'] = profile.languages
+        serializer.context['interests'] = profile.interests
 
         # ✅ 다시 이걸 써야 함
-        serializer.save(user=self.request.user)
+        serializer.save(
+            user=self.request.user,
+            interests=profile.interests
+        )
