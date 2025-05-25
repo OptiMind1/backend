@@ -20,6 +20,11 @@ class SignupSerializer(serializers.ModelSerializer):
             }
         }
 
+    def validate(self, attrs):
+        if attrs.get('user_id') == attrs.get('name'):
+            raise serializers.ValidationError("ID와 이름은 서로 달라야 합니다.")
+        return attrs
+
     def create(self, validated_data):
         # UserManager.create_user를 사용해서 password를 hashing하고 저장합니다
         return User.objects.create_user(**validated_data)
