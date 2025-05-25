@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings  # ✅ 커스텀 유저 모델 지원
+from team.models import Team
 
 class Post(models.Model):
     CATEGORY_CHOICES = [
@@ -61,3 +62,12 @@ class ChatRoom(models.Model):
 
     def __str__(self):
         return self.room_name
+
+# community/models.py
+
+class ChatRoom(models.Model):
+    team = models.OneToOneField(Team, on_delete=models.CASCADE, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"ChatRoom for Team {self.team.id}"
