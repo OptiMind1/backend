@@ -12,7 +12,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # 사용자 auth
-    path('users/', include('users.urls')),
+    path('api/users/', include('users.urls')),
 
     # 공모전 API
     path('api/competitions/', include('competition.urls')),
