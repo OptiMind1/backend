@@ -43,9 +43,14 @@ class ProfileCreateView(APIView):
             return Response({"error": "프로필이 이미 존재합니다."}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = ProfileCreateSerializer(data=request.data)  # ✅ 여기 변경
+
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response({"message": "프로필 등록 성공"}, status=status.HTTP_201_CREATED)
+        
+        # ✅ 여기에 에러 출력 추가!
+        print("❌ serializer.errors:", serializer.errors)  # 🔥🔥🔥
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

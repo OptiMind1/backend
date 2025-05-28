@@ -19,6 +19,9 @@ class ProfileCreateSerializer(serializers.ModelSerializer):
             'interests',
             'profile_image'
         ]
+        extra_kwargs = {
+            'profile_image': {'required': False}  # ✅ 이미지 필드를 optional로 설정
+        }
 
     def validate_nickname(self, value):
         return validate_nickname(value)
