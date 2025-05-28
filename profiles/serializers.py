@@ -101,4 +101,3 @@ class PublicProfileSerializer(serializers.ModelSerializer):
             'interests',
             'profile_image'
         ]
-

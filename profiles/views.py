@@ -53,6 +53,15 @@ class ProfileCreateView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class CheckNicknameView(APIView):
+    def get(self, request):
+        nickname = request.query_params.get('nickname', '')
+        if not nickname:
+            return Response({'error': '닉네임을 입력해주세요.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if Profile.objects.filter(nickname=nickname).exists():
+            return Response({'is_duplicate': True, 'message': '이미 사용 중인 닉네임입니다.'})
+        return Response({'is_duplicate': False, 'message': '사용 가능한 닉네임입니다.'})
 
 class ProfileMeView(APIView):
     permission_classes = [IsAuthenticated]
