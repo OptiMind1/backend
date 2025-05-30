@@ -10,6 +10,8 @@ from .serializers import (
     UserProfileSerializer,
     PublicProfileSerializer
 )
+from rest_framework.permissions import AllowAny
+
 
 # 프로필 검색
 class ProfileSearchView(APIView):
@@ -54,6 +56,8 @@ class ProfileCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CheckNicknameView(APIView):
+    permission_classes = [AllowAny]  # ✅ 인증 없이 누구나 접근 가능
+    
     def get(self, request):
         nickname = request.query_params.get('nickname', '')
         if not nickname:
@@ -64,8 +68,7 @@ class CheckNicknameView(APIView):
         return Response({'is_duplicate': False, 'message': '사용 가능한 닉네임입니다.'})
 
 class ProfileMeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+    
     def get(self, request):
         user = request.user
         try:
