@@ -8,12 +8,18 @@ from .serializers import CompetitionSerializer
 from .crawler import fetch_allcon_competitions
 from .utils import classify_category
 
+from rest_framework.permissions import AllowAny
+from rest_framework.authentication import BasicAuthentication
+
+
+
 # 기존에 누락된 CompetitionListView, CompetitionDetailView 추가
 
 class CompetitionListView(generics.ListAPIView):
     """
     API: 공모전 전체 조회
     """
+    permission_classes = [AllowAny]
     queryset = Competition.objects.all().order_by('-created_at')
     serializer_class = CompetitionSerializer
 
@@ -24,6 +30,9 @@ class CompetitionDetailView(generics.RetrieveAPIView):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
     lookup_field = 'id'
+    permission_classes = [AllowAny]  # ✅ 여기에 명시적으로 추가!
+    authentication_classes = []
+
 
 
 class CrawlAndSaveAllconAPI(APIView):
