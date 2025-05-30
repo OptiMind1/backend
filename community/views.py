@@ -7,6 +7,7 @@ from django.db.models import Count
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthorOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 class PostListCreateAPIView(generics.ListCreateAPIView):
     queryset = Post.objects.all().order_by('-created_at')
@@ -15,7 +16,7 @@ class PostListCreateAPIView(generics.ListCreateAPIView):
 class PostViewSet(viewsets.ModelViewSet): # type: ignore
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['category'] 
     ordering_fields = ['created_at', 'likes_count']

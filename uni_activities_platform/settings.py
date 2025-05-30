@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework',
     'competition',
     'team',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'users',
     'profiles',
     'corsheaders',
+    'community',
 ]
 
 MIDDLEWARE = [
@@ -140,6 +142,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         # 기본으로 로그인된 사용자만 접근 가능
         'rest_framework.permissions.IsAuthenticated',
+        # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',  # 기본 읽기 허용
+
     ),
 }
 
