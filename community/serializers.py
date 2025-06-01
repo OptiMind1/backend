@@ -3,6 +3,7 @@ from .models import Post, Like, Comment
 
 class PostSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
+    author = serializers.ReadOnlyField(source='author.username') 
 
     class Meta:
         model = Post
