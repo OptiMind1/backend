@@ -15,7 +15,7 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
 
     # 공모전 API
-    path('api/competitions/', include('competition.urls')),
+    path('api/competition/', include('competition.urls')),
 
     # 팀 API
     path('api/team/', include('team.urls')),
@@ -26,4 +26,8 @@ urlpatterns = [
     # 매칭 API 및 UI
     path('api/matching/', include('matching.urls')),
     path('matching/', include('matching.urls')),
+
+    # 커뮤니티
+    path('api/community/', include('community.urls')),
+
 ]
