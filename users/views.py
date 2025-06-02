@@ -28,6 +28,7 @@ class CheckIdView(APIView):
 
 # 회원가입 처리
 class SignupView(APIView):
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]    # ← 여기 추가
 
     def post(self, request):
