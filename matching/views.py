@@ -2,6 +2,8 @@ from django.views.generic import TemplateView
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 from .models import MatchingRequest
 from .serializers import MatchingRequestSerializer
@@ -44,22 +46,26 @@ class MatchingSelectView(TemplateView):
 class MatchingRequestCreateAPIView(generics.CreateAPIView):
     """
     POST /api/matching/request/
-    Body: { nationality, languages, interests, in_team,
-            desired_partner, subcategory, role }
+    Body: { in_team, desired_partner, role }
     """
+    
     queryset = MatchingRequest.objects.all()
     serializer_class = MatchingRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]  # ✅ 꼭 추가해야 인증 작동함
+
 
     def perform_create(self, serializer):
         profile = self.request.user.profile
         nationality = self.request.user.nationality
-        serializer.context['nationality'] = nationality
-        serializer.context['languages'] = profile.languages
-        serializer.context['interests'] = profile.interests
+        # serializer.context['nationality'] = nationality
+        # serializer.context['languages'] = profile.languages
+        # serializer.context['interests'] = profile.interests
 
         # ✅ 다시 이걸 써야 함
         serializer.save(
             user=self.request.user,
-            interests=profile.interests
+            interests=profile.interests,
+            nationality=nationality,
+            languages=profile.languages,
         )

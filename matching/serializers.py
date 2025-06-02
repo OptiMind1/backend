@@ -15,19 +15,20 @@ class MatchingRequestSerializer(serializers.ModelSerializer):
             'interests',
             'in_team',
             'desired_partner',
-            'subcategory',
             'role'
         ]
 
     def create(self, validated_data):
         user = validated_data.pop('user')
-        nationality = self.context.get('nationality')
-        languages = self.context.get('languages')
-        interests = self.context.get('interests')
+        # nationality = self.context.get('nationality')
+        # languages = self.context.get('languages')
+        # interests = self.context.get('interests')
+        nationality = validated_data.pop('nationality')
+        languages = validated_data.pop('languages')
+        interests = validated_data.pop('interests')
 
         # interests 중복 방지
-        validated_data.pop('interests', None)
-
+        # validated_data.pop('interests', None)
 
         return MatchingRequest.objects.create(
             user=user,
