@@ -30,4 +30,8 @@ urlpatterns = [
     # 커뮤니티
     path('api/community/', include('community.urls')),
 
+    # 팀매칭 알고리즘
+    path('api/', include('ai_matching.urls')),  # ← 추가
+
+
 ]
