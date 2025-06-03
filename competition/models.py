@@ -48,7 +48,9 @@ class CompetitionSubcategory(models.TextChoices):
     # 기타
     OTHER        = ('기타',      '기타')
 
+
 class Competition(models.Model):
+
     title       = models.CharField(max_length=200)
     category    = models.CharField(
         max_length=20,
@@ -57,7 +59,7 @@ class Competition(models.Model):
     )
     subcategory = models.CharField(
         max_length=50,
-        choices=CompetitionSubcategory.choices,      # ← 세부항목 choices 지정
+        choices=CompetitionSubcategory.choices,
         default=CompetitionSubcategory.OTHER,
         help_text="세부항목 분류 (e.g. 창업, 영상, 포스터 등)"
     )
