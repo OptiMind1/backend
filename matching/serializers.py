@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import MatchingRequest
 from users.models import User  # 유저 객체 가져오기 위해 필요
 from competition.models import Competition
+from team.models import Team, TeamMember
+from community.models import ChatRoom
 
 import uuid
 
@@ -129,4 +131,17 @@ class MatchingRequestSerializer(serializers.ModelSerializer):
             competition=competition,  # ✅ 연결
             **validated_data
         )
+       
+        # ✅ 팀 생성 + 연결
+        team = Team.objects.create(competition=competition)
+
+        for req in created_requests:
+            req.team = team
+            req.save()
+            TeamMember.objects.create(team=team, user=req.user, role=req.role)
+
+        # ✅ 채팅방 자동 생성
+        ChatRoom.objects.create(team=team)
+
+        return created_requests   
         

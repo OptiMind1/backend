@@ -52,12 +52,13 @@ class Comment(models.Model):
 
 
 class ChatRoom(models.Model):
-    room_name = models.CharField(max_length=100, unique=True)
+    team = models.OneToOneField('team.Team', on_delete=models.CASCADE, related_name='chatroom', null=True)
     members = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,  # ✅ 변경됨
+        settings.AUTH_USER_MODEL,
         related_name='chat_rooms'
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.room_name
+        return f"ChatRoom for Team {self.team.id}"
+    
