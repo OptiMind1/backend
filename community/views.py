@@ -8,6 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthorOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from team.models import Team
+from community.models import ChatRoom
 
 class PostListCreateAPIView(generics.ListCreateAPIView):
     queryset = Post.objects.all().order_by('-created_at')
@@ -46,3 +50,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+    
+@receiver(post_save, sender=Team)
+def create_chatroom_for_team(sender, instance, created, **kwargs):
+    if created:
+        # 이미 채팅방이 없다면 생성
+        if not hasattr(instance, 'chatroom'):
+            ChatRoom.objects.create(team=instance)

@@ -14,7 +14,7 @@ class CategoryRole(models.Model):
 # 팀 모델
 class Team(models.Model):
     name = models.CharField(max_length=100, blank=True)  # ← 추가!
-    competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
+    competition = models.ForeignKey(Competition, null=True, blank=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
