@@ -24,3 +24,8 @@ Thumbs.db
 # Django static/media
 staticfiles/
 media/
+__pycache__/
+*.pyc
+venv/
+.env/
+*.sqlite3
