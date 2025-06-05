@@ -1,4 +1,5 @@
 # team_match_training.py - 팀 적합도 예측 모델 학습 + 입력 필터링 + 벡터 생성
+
 import os  
 import random
 import numpy as np
@@ -6,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from team_match_model import TeamMatchMLP
+from .team_match_model import TeamMatchMLP
 
 # 역할/관심사/언어/국적 리스트
 ALL_ROLES = [
@@ -27,20 +28,22 @@ ALL_INTERESTS = [
 ALL_LANGUAGES = ["Korean", "English", "Vietnamese", "Hindi", "Chinese", "Japanese", "French", "German", "Spanish", "Arabic"]
 ALL_NATIONALITIES = ["Korea", "USA", "Vietnam", "India", "China", "Japan", "France", "Germany", "Mexico", "Brazil", "UK", "Canada", "Indonesia", "Russia", "Spain"]
 
-# ✅ 필드 개수 제한 + 결측값 대체
-def enforce_field_limits(user, max_items=3):
+# ✅ 필드 제한 제거 버전
+def enforce_field_limits(user, skip_roles=False):
     def limit(field, allow_empty=False):
         values = user.get(field, [])
-        values = values[:max_items]
         if not values and not allow_empty:
             values = ["없음"]
         return values
-    return {
-        "roles": limit("roles"),
+
+    result = {
         "interests": limit("interests"),
         "languages": limit("languages"),
         "nationality": user.get("nationality", "Unknown")
     }
+    if not skip_roles:
+        result["roles"] = limit("roles")
+    return result
 
 # ✅ 벡터화 + 정규화
 def create_advanced_feature_vector(user, team):
@@ -74,7 +77,7 @@ def create_advanced_feature_vector(user, team):
     lang_overlap = len(set(user.get("languages", [])) & set(team_langs))
 
     vec = user_vec + team_vec + [role_overlap, inter_jaccard, nat_diversity, lang_overlap]
-    
+
     if np.count_nonzero(vec) < 2:
         return None
     norm = np.linalg.norm(vec)
@@ -85,15 +88,15 @@ def create_advanced_dummy_samples(num_samples=1000):
     samples = []
     for _ in range(num_samples):
         user = enforce_field_limits({
-            "roles": random.sample(ALL_ROLES, random.randint(0, 4)),
-            "interests": random.sample(ALL_INTERESTS, random.randint(0, 4)),
-            "languages": random.sample(ALL_LANGUAGES, random.randint(0, 4)),
+            "roles": random.sample(ALL_ROLES, random.randint(0, 5)),
+            "interests": random.sample(ALL_INTERESTS, random.randint(0, 5)),
+            "languages": random.sample(ALL_LANGUAGES, random.randint(0, 5)),
             "nationality": random.choice(ALL_NATIONALITIES)
         })
         team = [enforce_field_limits({
-            "roles": random.sample(ALL_ROLES, random.randint(0, 4)),
-            "interests": random.sample(ALL_INTERESTS, random.randint(0, 4)),
-            "languages": random.sample(ALL_LANGUAGES, random.randint(0, 4)),
+            "roles": random.sample(ALL_ROLES, random.randint(0, 5)),
+            "interests": random.sample(ALL_INTERESTS, random.randint(0, 5)),
+            "languages": random.sample(ALL_LANGUAGES, random.randint(0, 5)),
             "nationality": random.choice(ALL_NATIONALITIES)
         }) for _ in range(random.randint(2, 4))]
 
@@ -103,7 +106,7 @@ def create_advanced_dummy_samples(num_samples=1000):
             samples.append((vec, label))
     return samples
 
-# ✅ 모델 학습 및 저장 (경로 포함 버전)
+# ✅ 모델 학습 및 저장
 def train_model(samples, input_dim, save_name="team_match_advanced.pt"):
     class SampleDataset(Dataset):
         def __init__(self, data):
@@ -130,16 +133,16 @@ def train_model(samples, input_dim, save_name="team_match_advanced.pt"):
             total_loss += loss.item()
         print(f"[Epoch {epoch+1}] Loss: {total_loss / len(loader):.4f}")
 
-    # 🔹 현재 파일 기준 경로로 저장
     base_dir = os.path.dirname(os.path.abspath(__file__))
     save_path = os.path.join(base_dir, save_name)
 
     torch.save(model.state_dict(), save_path)
     print(f"✅ 모델 저장 완료 → {save_path}")
 
+# ✅ 학습 실행
 if __name__ == "__main__":
     samples = create_advanced_dummy_samples(1000)
-    print(f"📊 유효 샘플 수: {len(samples)}")  # <- 이거 반드시 확인
+    print(f"📊 유효 샘플 수: {len(samples)}")
 
     if not samples:
         print("❌ 유효한 학습 샘플이 없습니다. 학습 중단.")

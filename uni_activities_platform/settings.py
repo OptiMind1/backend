@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'profiles',
     'corsheaders',
     'community',
+    'ai_matching',
 ]
 
 MIDDLEWARE = [
@@ -151,3 +152,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 CORS_ALLOW_ALL_ORIGINS = True  # 개발용. 배포 시 특정 도메인만 허용
+

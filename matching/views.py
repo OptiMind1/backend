@@ -2,6 +2,11 @@ from django.views.generic import TemplateView
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 from .models import MatchingRequest
 from .serializers import MatchingRequestSerializer
@@ -44,22 +49,41 @@ class MatchingSelectView(TemplateView):
 class MatchingRequestCreateAPIView(generics.CreateAPIView):
     """
     POST /api/matching/request/
-    Body: { nationality, languages, interests, in_team,
-            desired_partner, subcategory, role }
+    Body: { in_team, desired_partner, role }
     """
+    
     queryset = MatchingRequest.objects.all()
     serializer_class = MatchingRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]  # ✅ 꼭 추가해야 인증 작동함
 
-    def perform_create(self, serializer):
-        profile = self.request.user.profile
-        nationality = self.request.user.nationality
-        serializer.context['nationality'] = nationality
-        serializer.context['languages'] = profile.languages
-        serializer.context['interests'] = profile.interests
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        profile = user.profile
 
-        # ✅ 다시 이걸 써야 함
-        serializer.save(
-            user=self.request.user,
-            interests=profile.interests
+        serializer = self.get_serializer(
+            data=request.data,
+            context={
+                "user": user,
+                "nationality": user.nationality,
+                "languages": profile.languages,
+                "interests": profile.interests,
+            }
         )
+
+        serializer.is_valid(raise_exception=True)
+
+        # 🔥 save 시 context 값을 넘기지 않고 serializer 내부에서 context로 접근하게 함
+        result = serializer.save()
+
+        if isinstance(result, list):
+            return Response({
+                "message": "팀 매칭 요청이 성공적으로 제출되었습니다.",
+                "created_count": len(result)
+            }, status=status.HTTP_201_CREATED)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+   

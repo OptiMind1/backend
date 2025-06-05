@@ -1,6 +1,6 @@
 from itertools import combinations, permutations
-from team_match_predictor import predict_team_score
-from team_match_training import create_advanced_feature_vector
+from .team_match_predictor import predict_team_score
+from .team_match_training import create_advanced_feature_vector
 
 # 팀 크기 분할: team_size 또는 team_size - 1만 허용
 def get_team_sizes_fixed_max(team_size, total_users):
