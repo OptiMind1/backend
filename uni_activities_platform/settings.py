@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'community',
     'ai_matching',
+    'chat',
 ]
 
 MIDDLEWARE = [
