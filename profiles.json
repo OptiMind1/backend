@@ -1,0 +1,1 @@
+[{"model": "profiles.profile", "pk": 1, "fields": {"user": 1, "gender": "male", "university": "Seoul National University", "academic_year": 3, "degree_type": "undergraduate", "nickname": "newgildong", "languages": ["Korean", "English", "Japanese"], "interests": ["AI", "Fullstack Development"], "profile_image": ""}}]
