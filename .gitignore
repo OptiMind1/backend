@@ -1,5 +1,29 @@
-venv/
+# Python 기본
 __pycache__/
-*.pyc
-db.sqlite3.venv/ 
-.venv/ 
+*.py[cod]
+*.sqlite3
+*.log
+
+# 가상환경
+venv/
+.env/
+.venv/
+
+# 에디터 관련
+*.swp
+*.swo
+*.bak
+*.tmp
+.vscode/
+.idea/
+.env
+
+# macOS/Windows 시스템 파일
+.DS_Store
+Thumbs.db
+
+# Django static/media
+staticfiles/
+media/
+
+

@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import User
-from community.utils.translate import translate_text
+from chat.translate import translate_text
 from django_ratelimit.decorators import ratelimit
 from urllib.parse import parse_qs
 
