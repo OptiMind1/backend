@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.dispatch import receiver
 from team.models import Team
-from community.models import ChatRoom
+from chat.models import ChatRoom
 from django.db.models.signals import post_save
 
 @receiver(post_save, sender=Team)
