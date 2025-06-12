@@ -1,6 +1,6 @@
 # team/serializers.py
 from rest_framework import serializers
-from .models import Team, TeamApplication, CategoryRole
+from .models import Team, TeamApplication, CategoryRole, TeamMember
 
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,4 +15,9 @@ class TeamApplicationSerializer(serializers.ModelSerializer):
 class CategoryRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoryRole
+        fields = '__all__'
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeamMember
         fields = '__all__'

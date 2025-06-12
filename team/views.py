@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Team, TeamApplication, CategoryRole
+from .models import Team, TeamApplication, CategoryRole, TeamMember
 from .serializers import TeamSerializer, TeamApplicationSerializer
 from django.db.models import Count
 
@@ -48,9 +48,21 @@ class TeamViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_teams(self, request):
         """
-        사용자가 참여한 팀 목록 조회
+        로그인한 사용자가 속한 팀 목록 조회
         """
         user = request.user
-        teams = Team.objects.filter(members__user=user).distinct()
+
+        if not user.is_authenticated:
+            return Response({"detail": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 유저가 속한 팀 멤버 정보 가져오기
+        team_members = TeamMember.objects.filter(user=user)
+        team_ids = team_members.values_list('team_id', flat=True)
+
+        # 해당 팀 ID에 해당하는 팀 가져오기
+        teams = Team.objects.filter(id__in=team_ids).distinct()
+
+        # ✅ 시리얼라이징
         serializer = self.get_serializer(teams, many=True)
+
         return Response(serializer.data)

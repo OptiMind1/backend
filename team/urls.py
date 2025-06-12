@@ -4,7 +4,7 @@ from .views import TeamViewSet
 
 # Router 설정
 router = DefaultRouter()
-router.register(r'team', TeamViewSet)
+router.register(r'', TeamViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),  # TeamViewSet을 포함시킴
