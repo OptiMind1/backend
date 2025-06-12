@@ -3,7 +3,7 @@ from .models import Competition
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
-    list_display  = ('title', 'category', 'subcategory', 'host', 'deadline', 'created_at', 'image_preview')
+    list_display  = ('title', 'category', 'subcategory', 'host', 'deadline', 'created_at', 'image_preview', 'image_url')
     list_filter   = ('category', 'subcategory')
     search_fields = ('title', 'host')
     ordering      = ('category', '-created_at')
