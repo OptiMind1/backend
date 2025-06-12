@@ -1,89 +1,133 @@
-from django.views.generic import TemplateView
-from rest_framework import generics, permissions, status
+# views.py (matching/views.py)
 from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
-import logging
-logger = logging.getLogger(__name__)
-
-
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 from .models import MatchingRequest
-from .serializers import MatchingRequestSerializer
-from .constants import SUBCATEGORY_ROLES
+from team.models import Team, TeamMember
+from chat.models import ChatRoom
+from competition.models import Competition
+from users.models import User
+import uuid
 
-class SubcategoryRolesAPIView(APIView):
-    """
-    GET /api/matching/roles/?subcategory=슬로건
-    → {"roles": [...]}
-    """
-    permission_classes = [permissions.AllowAny]
+class MatchingRequestCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @transaction.atomic
+    def post(self, request):
+        user = request.user
+        data = request.data
+
+        members = data.get("members", [])
+        competition_id = data.get("competition_id")
+        desired_partner = data.get("desired_partner", "")
+
+        if not competition_id:
+            return Response({"error": "competition_id는 필수입니다."}, status=400)
+
+        try:
+            competition = Competition.objects.get(id=competition_id)
+        except Competition.DoesNotExist:
+            return Response({"error": "유효하지 않은 competition_id입니다."}, status=404)
+
+        group_id = str(uuid.uuid4())
+        team = Team.objects.create(competition=competition)
+        chatroom = ChatRoom.objects.create(team=team)
+
+        created_requests = []
+
+        for member in members:
+            try:
+                user_id = member['user_id']
+                role = member.get('role', ['없음'])
+                if isinstance(role, str):
+                    role = [role]
+
+                member_user = user if user.user_id == user_id else User.objects.get(user_id=user_id)
+                profile = getattr(member_user, 'profile', None)
+                nationality = getattr(member_user, 'nationality', '')
+                languages = getattr(profile, 'languages', [])
+                interests = getattr(profile, 'interests', [])
+
+                matching_request = MatchingRequest.objects.create(
+                    user=member_user,
+                    nationality=nationality,
+                    languages=languages,
+                    interests=interests,
+                    in_team=True,
+                    desired_partner=desired_partner,
+                    role=role,
+                    competition=competition,
+                    team_group_id=group_id,
+                    team=team,
+                    is_accepted=(member_user == user)
+                )
+                created_requests.append(matching_request)
+
+                if member_user == user:
+                    TeamMember.objects.create(team=team, user=member_user, role=None)
+                    chatroom.members.add(member_user)
+
+            except User.DoesNotExist:
+                return Response({"error": f"유저 {member['user_id']}를 찾을 수 없습니다."}, status=400)
+
+        return Response({
+            "message": "팀과 채팅방이 생성되었고 요청이 전송되었습니다.",
+            "team_id": team.id,
+            "chatroom_id": chatroom.id,
+            "requests": [r.id for r in created_requests]
+        }, status=201)
+
+class MatchingRequestAcceptAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        matching_request = get_object_or_404(MatchingRequest, pk=pk, user=request.user)
+
+        if matching_request.is_accepted:
+            return Response({"message": "이미 수락된 요청입니다."}, status=400)
+
+        matching_request.is_accepted = True
+        matching_request.save()
+
+        TeamMember.objects.create(team=matching_request.team, user=request.user, role=None)
+        chatroom = matching_request.team.chatroom
+        chatroom.members.add(request.user)
+
+        return Response({
+            "message": "팀 요청을 수락했습니다.",
+            "team_id": matching_request.team.id
+        }, status=200)
+
+class MyMatchingInvitesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request):
-        sub = request.query_params.get('subcategory')
-        if not sub:
-            return Response({'error': 'subcategory 파라미터를 보내주세요.'}, status=400)
-        roles = SUBCATEGORY_ROLES.get(sub)
-        if roles is None:
-            return Response({'error': f'알 수 없는 subcategory: {sub}'}, status=400)
-        return Response({'roles': roles})
-
-class MatchingSelectView(TemplateView):
-    """
-    GET /matching/select/
-    → matching/templates/matching/select.html 렌더링
-    """
-    template_name = "matching/select.html"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['subcategories'] = [
-            '창업','아이디어','슬로건','네이밍','마케팅',
-            '사진','영상',
-            '포스터','로고','상품','캐릭터','그림','웹툰','광고','도시건',
-            '논문','수기','시','시나리오','공학','과학',
-            '음악','댄스','e스포츠'
-        ]
-        return ctx
-
-class MatchingRequestCreateAPIView(generics.CreateAPIView):
-    """
-    POST /api/matching/request/
-    Body: { in_team, desired_partner, role }
-    """
-    
-    queryset = MatchingRequest.objects.all()
-    serializer_class = MatchingRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [JWTAuthentication]  # ✅ 꼭 추가해야 인증 작동함
-
-    def create(self, request, *args, **kwargs):
         user = request.user
-        profile = user.profile
 
-        serializer = self.get_serializer(
-            data=request.data,
-            context={
-                "user": user,
-                "nationality": user.nationality,
-                "languages": profile.languages,
-                "interests": profile.interests,
+        invites = MatchingRequest.objects.filter(
+            user=user,
+            in_team=True,
+            is_accepted=False,
+            team__isnull=False
+        ).select_related('team', 'competition')
+
+        result = [
+            {
+                "matching_id": invite.id,
+                "team_id": invite.team.id,
+                "team_name": str(invite.team),
+                "competition_title": invite.competition.title,
+                "requested_at": invite.created_at
             }
-        )
+            for invite in invites
+        ]
 
-        serializer.is_valid(raise_exception=True)
-
-        # 🔥 save 시 context 값을 넘기지 않고 serializer 내부에서 context로 접근하게 함
-        result = serializer.save()
-
-        if isinstance(result, list):
-            return Response({
-                "message": "팀 매칭 요청이 성공적으로 제출되었습니다.",
-                "created_count": len(result)
-            }, status=status.HTTP_201_CREATED)
-
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
-   
+        return Response(result, status=200)
