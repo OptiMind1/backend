@@ -20,7 +20,9 @@ def fetch_allcon_competitions():
     soup = BeautifulSoup(resp.text, "html.parser")
 
     items = soup.select("div.card-contest-list div.contest-item")
-    print("🔍 선택자 'ul.list-con > li.list-row'로 찾은 항목 수:", len(items))
+    print("🔥 crawler.py 진짜 수정된 버전 실행됨")
+
+    print("🔍 선택자 찾은 항목 수:", len(items))
     print("🔍 페이지 HTML (앞 2000자):\n", soup.prettify()[:2000])
     print("🧪 응답 상태 코드:", resp.status_code)
     print("🧪 응답 본문 일부:", resp.text[:100])
