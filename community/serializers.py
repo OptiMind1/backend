@@ -23,5 +23,5 @@ class LikeSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id', 'post', 'author', 'content', 'is_anonymous', 'create_at']
-        read_only_fields = ['id', 'author', 'created_at']   # ✅ author를 read_only로 지정
+        fields = ['id', 'post', 'author', 'content']
+        read_only_fields = ['id', 'author']   # ✅ author를 read_only로 지정
