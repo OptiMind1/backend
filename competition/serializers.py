@@ -2,9 +2,9 @@ from rest_framework import serializers
 from .models import Competition
 
 class CompetitionSerializer(serializers.ModelSerializer):
-    poster_image = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
-    def get_poster_image(self, obj):
+    def get_image_url(self, obj):
         return obj.image_url
 
     class Meta:
@@ -18,6 +18,7 @@ class CompetitionSerializer(serializers.ModelSerializer):
             'description',
             'deadline',
             'link',
-            'poster_image',    # 프론트 호환용 가짜 필드
+            # 'poster_image',    # 프론트 호환용 가짜 필드
+            'image_url',
             'created_at',
         ]

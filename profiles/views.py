@@ -11,7 +11,25 @@ from .serializers import (
     PublicProfileSerializer
 )
 from rest_framework.permissions import AllowAny
+from profiles.models import Profile
 
+# 다수 프로필 검색 (팀매칭신청 시 팀원 검색 용도)
+class TeamMemberSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        keyword = request.query_params.get('nickname', '')
+        user = request.user
+
+        if not keyword:
+            return Response([], status=status.HTTP_200_OK)
+
+        results = Profile.objects.filter(
+            Q(nickname__icontains=keyword) | Q(user__user_id__icontains=keyword)
+        ).exclude(user=user)[:10]  # 자기 자신 제외, 최대 10명
+
+        simplified = [{"user_id": p.user.user_id, "name": p.nickname} for p in results]
+        return Response(simplified, status=status.HTTP_200_OK)
 
 # 프로필 검색
 class ProfileSearchView(APIView):
@@ -57,7 +75,7 @@ class ProfileCreateView(APIView):
 
 class CheckNicknameView(APIView):
     permission_classes = [AllowAny]  # ✅ 인증 없이 누구나 접근 가능
-    
+
     def get(self, request):
         nickname = request.query_params.get('nickname', '')
         if not nickname:
@@ -68,6 +86,7 @@ class CheckNicknameView(APIView):
         return Response({'is_duplicate': False, 'message': '사용 가능한 닉네임입니다.'})
 
 class ProfileMeView(APIView):
+    permission_classes = [IsAuthenticated]
     
     def get(self, request):
         user = request.user

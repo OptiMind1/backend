@@ -1,3 +1,4 @@
+# /Users/sangjun/Desktop/backend/community/models.py
 from django.db import models
 from django.conf import settings  # ✅ 커스텀 유저 모델 지원
 

@@ -30,4 +30,6 @@ urlpatterns = [
     # 커뮤니티
     path('api/community/', include('community.urls')),
 
+
+    
 ]

@@ -4,7 +4,8 @@ from .views import (
     ProfileMeView,
     ProfileUpdateView,
     ProfileSearchView,
-    CheckNicknameView)
+    CheckNicknameView,
+    TeamMemberSearchView)
 
 urlpatterns = [
     path('create/', ProfileCreateView.as_view(), name='profile-create'),
@@ -12,5 +13,6 @@ urlpatterns = [
     path('update/', ProfileUpdateView.as_view(), name='profile-update'), 
     path('search/', ProfileSearchView.as_view(), name='profile-search'),
     path('check_nickname/', CheckNicknameView.as_view(), name='check-nickname'),
+    path('search_team/', TeamMemberSearchView.as_view(), name='search-team-members'),
 
 ]

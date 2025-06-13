@@ -1,3 +1,4 @@
+# community/views.py
 from django.shortcuts import render
 
 from rest_framework import generics, viewsets, filters
